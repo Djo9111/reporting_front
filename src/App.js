@@ -1,15 +1,17 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import UploadPage from "./pages/UploadPage"; // default import
-import LoginPage from "./pages/LoginPage";   // default import
-import HomePage from "./pages/HomePage";     // default import
+import UploadPage from "./pages/UploadPage";
+import LoginPage from "./pages/LoginPage";
+import HomePage from "./pages/HomePage";
+import AdminPage from "./pages/AdminPage";  // ✅ nouvelle page
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<UploadPage />} />   {/* Page d'import */}
-      <Route path="/login" element={<LoginPage />} /> {/* Page de connexion */}
-      <Route path="/home" element={<HomePage />} />   {/* Dashboard */}
+      <Route path="/" element={<UploadPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/home" element={<HomePage />} />
+      <Route path="/admin" element={<AdminPage />} /> {/* ✅ nouvelle route */}
     </Routes>
   );
 }
