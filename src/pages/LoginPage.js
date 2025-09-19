@@ -20,7 +20,7 @@ function LoginPage() {
       });
 
       if (response.status === 200) {
-        navigate("/home", { state: { nomUtilisateur } });
+        navigate("/dashboard", { state: { nomUtilisateur } });
       }
     } catch (err) {
       setError("Nom d'utilisateur ou mot de passe incorrect.");
