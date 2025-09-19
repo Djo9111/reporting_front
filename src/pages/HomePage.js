@@ -112,7 +112,7 @@ function HomePage() {
         </div>
         <div className="text-right text-white">
           <p className="text-lg">
-            Bienvenue, <span className="font-semibold">{nomComplet}</span> 👋
+            Bienvenue, <span className="font-semibold">{nomComplet}</span> 
           </p>
         </div>
       </nav>
