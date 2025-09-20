@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import HomePage from "./HomePage";
-import ClientListPage from "./ClientListPage"; // On créera cette page
+import ClientListPage from "./ClientListPage";
 
 function DashboardPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { nomUtilisateur, nomComplet } = location.state || {};
 
-  const [view, setView] = useState(null); // null | "clients" | "performance"
+  const [view, setView] = useState(null);
 
   if (!nomUtilisateur) {
     return (
@@ -22,7 +23,13 @@ function DashboardPage() {
   }
 
   if (view === "clients") {
-    return <ClientListPage nomUtilisateur={nomUtilisateur} nomComplet={nomComplet} goBack={() => setView(null)} />;
+    return (
+      <ClientListPage
+        nomUtilisateur={nomUtilisateur}
+        nomComplet={nomComplet}
+        goBack={() => setView(null)}
+      />
+    );
   }
 
   if (view === "performance") {
@@ -32,7 +39,9 @@ function DashboardPage() {
   // Menu principal
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-3xl font-extrabold mb-10">Bienvenue, {nomComplet}</h1>
+      <h1 className="text-3xl font-extrabold mb-10">
+        Bienvenue, {nomComplet}
+      </h1>
       <div className="flex flex-col space-y-6">
         <button
           onClick={() => setView("clients")}
@@ -40,11 +49,20 @@ function DashboardPage() {
         >
           Voir mes clients
         </button>
+
         <button
           onClick={() => setView("performance")}
           className="px-10 py-4 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600"
         >
           Voir mes performances
+        </button>
+
+        {/* 🚀 Nouveau bouton Planifier un RDV */}
+        <button
+          onClick={() => navigate("/appointments", { state: { nomUtilisateur, nomComplet } })}
+          className="px-10 py-4 bg-purple-500 text-white font-semibold rounded-lg shadow-md hover:bg-purple-600"
+        >
+          Planifier un RDV
         </button>
       </div>
     </div>
