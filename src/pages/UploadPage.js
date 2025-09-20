@@ -24,9 +24,7 @@ function UploadPage() {
   const [planError, setPlanError] = useState("");
   const [planLoading, setPlanLoading] = useState(false);
 
-  // ----------------- Handlers -----------------
-
-  // Production
+  // ----------------- Handlers (inchangés) -----------------
   const handleProdFileChange = (e) => {
     setProdFile(e.target.files[0]);
     setProdResult(null);
@@ -36,7 +34,6 @@ function UploadPage() {
     if (!prodFile) { setProdError("Veuillez sélectionner un fichier Excel de production."); return; }
     setProdLoading(true); setProdError(""); setProdResult(null);
     const formData = new FormData(); formData.append("file", prodFile);
-
     try {
       const response = await axios.post("http://localhost:8086/api/upload/excel", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -48,7 +45,6 @@ function UploadPage() {
     } finally { setProdLoading(false); }
   };
 
-  // Objectives
   const handleObjFileChange = (e) => {
     setObjFile(e.target.files[0]);
     setObjResult(null);
@@ -58,7 +54,6 @@ function UploadPage() {
     if (!objFile) { setObjError("Veuillez sélectionner un fichier Excel d'objectifs."); return; }
     setObjLoading(true); setObjError(""); setObjResult(null);
     const formData = new FormData(); formData.append("file", objFile);
-
     try {
       const response = await axios.post("http://localhost:8086/api/import/objectives", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -70,7 +65,6 @@ function UploadPage() {
     } finally { setObjLoading(false); }
   };
 
-  // Contact Plans
   const handlePlanFileChange = (e) => {
     setPlanFile(e.target.files[0]);
     setPlanResult(null);
@@ -80,7 +74,6 @@ function UploadPage() {
     if (!planFile) { setPlanError("Veuillez sélectionner un fichier Excel Plan de Contact."); return; }
     setPlanLoading(true); setPlanError(""); setPlanResult(null);
     const formData = new FormData(); formData.append("file", planFile);
-
     try {
       const response = await axios.post("http://localhost:8086/api/import/contact-plans", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -93,28 +86,59 @@ function UploadPage() {
   };
 
   // ----------------- UI -----------------
+  const renderUploadSection = (
+    title,
+    fileHandler,
+    uploadHandler,
+    result,
+    error,
+    loading,
+    buttonClass
+  ) => (
+    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+        <span className="inline-block h-2 w-2 rounded-full bg-orange-500" />
+        {title}
+      </h2>
 
-  const renderUploadSection = (title, fileHandler, uploadHandler, result, error, loading, buttonColor) => (
-    <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-lg">
-      <h1 className="text-xl font-bold text-center mb-6 text-gray-800">{title}</h1>
-      {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
-      <input type="file" accept=".xlsx" onChange={fileHandler} className="w-full mb-4 p-2 border rounded" />
+      {error && (
+        <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="mt-4">
+        <input
+          type="file"
+          accept=".xlsx"
+          onChange={fileHandler}
+          className="block w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-orange-50 file:px-3 file:py-2 file:text-orange-700 hover:file:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+        />
+      </div>
+
       <button
         onClick={uploadHandler}
         disabled={loading}
-        className={`w-full ${buttonColor} text-white font-semibold py-3 rounded-lg shadow-md disabled:opacity-50`}
+        className={`mt-4 w-full rounded-xl px-4 py-2 text-sm font-medium shadow-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 ${buttonClass}`}
       >
         {loading ? "Importation en cours..." : `Charger le fichier ${title}`}
       </button>
+
       {result && (
-        <div className="mt-6 bg-gray-50 p-4 rounded-lg shadow">
-          <p className="text-green-600 font-semibold">Insertion : {result.inserted}</p>
-          <p className="text-blue-600 font-semibold">Mise à jour : {result.updated}</p>
+        <div className="mt-5 rounded-xl border border-gray-100 bg-gray-50 p-4">
+          <p className="text-sm text-green-700">
+            <span className="font-semibold">Insertion :</span> {result.inserted}
+          </p>
+          <p className="mt-1 text-sm text-blue-700">
+            <span className="font-semibold">Mise à jour :</span> {result.updated}
+          </p>
           {result.errors?.length > 0 && (
             <div className="mt-2">
-              <p className="text-red-600 font-semibold">Erreurs :</p>
-              <ul className="list-disc list-inside text-sm text-red-500">
-                {result.errors.map((err, idx) => <li key={idx}>{err}</li>)}
+              <p className="text-sm font-semibold text-red-700">Erreurs :</p>
+              <ul className="ml-4 list-disc text-sm text-red-600">
+                {result.errors.map((err, idx) => (
+                  <li key={idx}>{err}</li>
+                ))}
               </ul>
             </div>
           )}
@@ -124,19 +148,79 @@ function UploadPage() {
   );
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-100 p-6 space-y-10">
-      <div className="flex justify-center mb-6"><img src={logo} alt="Logo CDS" className="h-20 w-auto" /></div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Fine barre brand */}
+      <div className="h-0.5 w-full bg-orange-500" />
 
-      {renderUploadSection("Production", handleProdFileChange, handleProdUpload, prodResult, prodError, prodLoading, "bg-orange-400 hover:bg-orange-500")}
-      {renderUploadSection("Objectifs", handleObjFileChange, handleObjUpload, objResult, objError, objLoading, "bg-blue-500 hover:bg-blue-600")}
-      {renderUploadSection("Plan de Contact", handlePlanFileChange, handlePlanUpload, planResult, planError, planLoading, "bg-purple-500 hover:bg-purple-600")}
+      {/* Header avec logo */}
+      <header className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-orange-200/40">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="CDS" className="h-8 w-auto object-contain" />
+            <h1 className="text-lg font-bold">Import des données</h1>
+          </div>
+          <button
+            onClick={() => navigate("/login")}
+            className="rounded-lg bg-orange-500 px-3 py-2 text-sm font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+          >
+            Continuer vers la connexion
+          </button>
+        </div>
+      </header>
 
-      <button
-        onClick={() => navigate("/login")}
-        className="mt-6 w-full max-w-lg bg-green-500 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-green-600"
-      >
-        Continuer vers la connexion
-      </button>
+      {/* Contenu */}
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        {/* Bandeau d’intro */}
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4">
+          <p className="text-sm text-gray-600">
+            Importez vos fichiers **Production**, **Objectifs** et **Plan de Contact** au format
+            <span className="mx-1 rounded bg-orange-50 px-1.5 py-0.5 text-orange-700">.xlsx</span>.
+          </p>
+        </div>
+
+        {/* Grille des 3 cartes pour réduire les vides */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {renderUploadSection(
+            "Production",
+            handleProdFileChange,
+            handleProdUpload,
+            prodResult,
+            prodError,
+            prodLoading,
+            "bg-orange-500 text-white hover:bg-orange-600"
+          )}
+
+          {renderUploadSection(
+            "Objectifs",
+            handleObjFileChange,
+            handleObjUpload,
+            objResult,
+            objError,
+            objLoading,
+            "bg-blue-600 text-white hover:bg-blue-700"
+          )}
+
+          {renderUploadSection(
+            "Plan de Contact",
+            handlePlanFileChange,
+            handlePlanUpload,
+            planResult,
+            planError,
+            planLoading,
+            "bg-purple-600 text-white hover:bg-purple-700"
+          )}
+        </div>
+
+        {/* CTA secondaire en bas (option) */}
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={() => navigate("/login")}
+            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+          >
+            Ou se connecter plus tard →
+          </button>
+        </div>
+      </main>
     </div>
   );
 }
