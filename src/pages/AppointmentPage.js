@@ -85,7 +85,8 @@ function AppointmentPage() {
         setEvents(
           (res.data || []).map((rdv) => ({
             id: rdv.id,
-            title: `${rdv.numeroClient} - ${rdv.objetRdv || "RDV"}`,
+            // on ne fige plus le title ici : il sera reconstruit avec le nom via nameMap
+            title: rdv.objetRdv || "RDV",
             start: new Date(rdv.dateRdv),
             end: new Date(new Date(rdv.dateRdv).getTime() + rdv.dureeMinutes * 60000),
             objetRdv: rdv.objetRdv,
@@ -109,6 +110,21 @@ function AppointmentPage() {
     fetchClients();
     fetchAppointments();
   }, [nomUtilisateur]);
+
+  // --- NEW: map numeroClient -> nom (client) pour reconstituer les titres côté agenda
+  const nameMap = useMemo(() => {
+    const m = new Map();
+    (clients || []).forEach((c) => m.set(String(c.numeroClient), c.client));
+    return m;
+  }, [clients]);
+
+  // Titre affiché dans le calendrier : "Nom Client (CODE) - Objet"
+  const displayTitle = (ev) => {
+    const code = ev.numeroClient;
+    const name = nameMap.get(String(code));
+    const left = name ? `${name} (${code})` : `${code}`;
+    return `${left} - ${ev.objetRdv || "RDV"}`;
+  };
 
   // filtrage clients
   const filteredClients = useMemo(() => {
@@ -168,7 +184,7 @@ function AppointmentPage() {
         ...prev,
         {
           id: res.data.id,
-          title: `${client.numeroClient} - ${res.data.objetRdv}`,
+          title: res.data.objetRdv || "RDV", // sera affiché avec displayTitle
           start: new Date(res.data.dateRdv),
           end: new Date(new Date(res.data.dateRdv).getTime() + res.data.dureeMinutes * 60000),
           objetRdv: res.data.objetRdv,
@@ -252,7 +268,7 @@ function AppointmentPage() {
                 commentaires: res.data.commentaires ?? ev.commentaires,
                 statutRdv: res.data.statutRdv ?? ev.statutRdv,
                 dureeMinutes: res.data.dureeMinutes ?? newDuree,
-                title: `${ev.numeroClient} - ${(res.data.objetRdv ?? ev.objetRdv) || "RDV"}`,
+                // pas besoin de recalculer title ici : displayTitle s’en charge au rendu
               }
             : ev
         )
@@ -392,7 +408,7 @@ function AppointmentPage() {
           {pendingAppointment && (
             <div className="rounded-2xl border border-gray-200 bg-white p-4">
               <div className="font-semibold">
-                RDV provisoire : {pendingAppointment.client.client}
+                RDV provisoire : {pendingAppointment.client.client} ({pendingAppointment.client.numeroClient})
               </div>
               <div className="text-sm text-gray-600">
                 {moment(pendingAppointment.start).format("DD/MM/YYYY HH:mm")} →{" "}
@@ -436,7 +452,7 @@ function AppointmentPage() {
           {/* Édition RDV */}
           {selectedEvent && (
             <div className="rounded-2xl border border-gray-200 bg-white p-4">
-              <div className="font-semibold">Modifier RDV : {selectedEvent.numeroClient}</div>
+              <div className="font-semibold">Modifier RDV : {nameMap.get(String(selectedEvent.numeroClient)) || ""} ({selectedEvent.numeroClient})</div>
 
               <label className="block mt-3 text-sm">
                 Date & heure :
@@ -520,12 +536,13 @@ function AppointmentPage() {
             <Calendar
               localizer={localizer}
               events={[
-                ...events,
+                // on reconstruit les titles avec Nom (Code) - Objet
+                ...events.map((ev) => ({ ...ev, title: displayTitle(ev) })),
                 ...(pendingAppointment
                   ? [
                       {
                         id: "temp",
-                        title: `🔵 [Provisoire] ${pendingAppointment.client.numeroClient}`,
+                        title: `🔵 [Provisoire] ${pendingAppointment.client.client} (${pendingAppointment.client.numeroClient})`,
                         start: pendingAppointment.start,
                         end: pendingAppointment.end,
                         statutRdv: "PLANIFIE",
